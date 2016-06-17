@@ -120,9 +120,12 @@ public class AFKMover implements Plugin {
 	}
 
 	private Map<Integer, Integer> afk = new HashMap<>();
-	private Vector<Integer> ignore = new Vector<Integer>();
+	private Vector<Integer> ignore = new Vector<>();
 	private static Object block = new Object();
 	private AFKTickListener listener;
+	
+	private EnableCommand enable = null;
+	private DisableCommand disable = null;
 	
 	public AFKMover() {
 		this.listener = new AFKTickListener(this);
@@ -136,14 +139,18 @@ public class AFKMover implements Plugin {
 	public void onLoad(ServerBot handle) {
 		if(handle.getSettings().containsKey("afk_cid") && handle.getSettings().containsKey("afk_passwd")) {
 			handle.addListener(this.listener);
-			handle.getCommandManager().registerCommand(new EnableCommand(handle, this));
-			handle.getCommandManager().registerCommand(new DisableCommand(handle, this));
+			this.enable = new EnableCommand(handle, this);
+			this.disable = new DisableCommand(handle, this);
+			handle.getCommandManager().registerCommand(this.enable);
+			handle.getCommandManager().registerCommand(this.disable);
 		}
 	}
 
 	@Override
 	public void onUnload(ServerBot handle) {
 		handle.removeListener(this.listener);
+		handle.getCommandManager().unregisterCommand(this.enable);
+		handle.getCommandManager().unregisterCommand(this.disable);
 	}
 
 	public void ignore(int clid) {
